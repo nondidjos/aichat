@@ -28,6 +28,7 @@ import 'highlight.js/styles/github-dark.css';
 
 
 const md = new MarkdownIt({
+    breaks: true,
     highlight: (str, lang) => lang && hljs.getLanguage(lang) ? hljs.highlight(str, { language: lang }).value : '',
 });
 
@@ -40,11 +41,18 @@ const props = defineProps({
     currentConversationId: String,
 });
 
+
 // message state
 const form = useForm({
     message: '',
     model: props.selectedModel,
     conversationId: props.currentConversationId,
+});
+
+// local messages for optimistic UI
+const localMessages = ref([...props.messages]);
+watch(() => props.messages, (newMessages) => {
+    localMessages.value = [...newMessages];
 });
 
 // update form when switching conversations
@@ -55,7 +63,7 @@ watch(() => props.currentConversationId, (id) => {
 
 // auto-scroll to bottom on new messages
 const messagesContainer = ref(null);
-watch(() => props.messages.length, () => {
+watch(() => localMessages.value.length, () => {
     nextTick(() => {
         if (messagesContainer.value) {
             messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
@@ -85,7 +93,16 @@ const confirmModel = () => {
 };
 
 const sendMessage = () => {
-    form.post('/ask', { onSuccess: () => form.message = '' });
+    const message = form.message;
+    if (!message.trim()) return;
+        form.message = '';
+        localMessages.value.push({ role: 'user', content: message });
+
+    router.post('/ask', {
+        message,
+        model: form.model,
+        conversationId: form.conversationId,
+    });
 };
 </script>
 
@@ -115,7 +132,7 @@ const sendMessage = () => {
                     class="group flex justify-between px-4 py-3 hover:bg-muted text-sm"
                     :class="{ 'bg-muted': conversation.id === currentConversationId }">
                     <span class="truncate">{{ conversation.title }}</span>
-                    <button @click.prevent="router.delete(`/ask/${conversation.id}`)" class="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive">✕</button>
+                    <button @click.prevent="router.delete(`/ask/${conversation.id}`)" class="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive cursor-pointer">✕</button>
                 </Link>
             </nav>
         </aside>
@@ -129,9 +146,9 @@ const sendMessage = () => {
                 <AlertDescription>{{ error }}</AlertDescription>
             </Alert>
 
-            <section ref="messagesContainer" class="flex-1 overflow-y-auto px-6 py-4 space-y-4">
-                <p v-if="!messages.length" class="flex items-center justify-center h-full text-muted-foreground">Start a conversation below.</p>
-                <article v-for="(message, index) in messages" :key="index" class="flex gap-3">
+            <section ref="messagesContainer" class="flex-1 overflow-y-auto px-48 py-4 space-y-4">
+                <p v-if="!localMessages.length" class="flex items-center justify-center h-full text-muted-foreground">Start a conversation below.</p>
+                <article v-for="(message, index) in localMessages" :key="index" class="flex gap-3">
                     <Avatar class="h-8 w-8 shrink-0">
                         <AvatarFallback :class="message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'">{{ message.role === 'user' ? 'U' : 'AI' }}</AvatarFallback>
                     </Avatar>

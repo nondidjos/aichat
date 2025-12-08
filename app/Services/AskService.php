@@ -6,11 +6,6 @@ namespace App\Services;
 
 use Illuminate\Support\Facades\Http;
 
-/**
- * Service simplifié pour communiquer avec l'API OpenRouter.
- *
- * Exemple pédagogique utilisant le client HTTP de Laravel.
- */
 class AskService
 {
     public const DEFAULT_MODEL = 'openai/gpt-5-mini';
