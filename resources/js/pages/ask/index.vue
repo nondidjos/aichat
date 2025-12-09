@@ -75,9 +75,9 @@ watch(() => localMessages.value.length, () => {
 const showModelPicker = ref(false);
 const pickedModel = ref(props.selectedModel);
 
-// show model picker if no conversations exist
+// show model picker if no conversation selected
 onMounted(() => {
-    if (!props.conversations.length && !props.currentConversationId) {
+    if (!props.currentConversationId) {
         showModelPicker.value = true;
     }
 });
@@ -105,6 +105,7 @@ const sendMessage = () => {
     });
 };
 </script>
+
 
 <template>
     <main class="bg-background text-foreground flex h-screen">
