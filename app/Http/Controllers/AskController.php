@@ -16,8 +16,9 @@ class AskController extends Controller
 
     public function index(?string $conversationId = null)
     {
-        $conversations = $this->conversationService->all();
-        $current = $conversationId ? $this->conversationService->find($conversationId) : null;
+        $userId = auth()->id();
+        $conversations = $this->conversationService->all($userId);
+        $current = $conversationId ? $this->conversationService->find($userId, $conversationId) : null;
 
         return Inertia::render('ask/index', [
             'models' => $this->askService->getModels(),
@@ -25,6 +26,7 @@ class AskController extends Controller
             'messages' => $current['messages'] ?? [],
             'conversations' => array_values($conversations),
             'currentConversationId' => $conversationId,
+            'user' => auth()->user()->only(['id', 'name', 'email']),
         ]);
     }
 
@@ -37,16 +39,17 @@ class AskController extends Controller
         ]);
 
         $error = null;
+        $userId = auth()->id();
         $conversationId = $request->conversationId;
 
         if (!$conversationId) {
-            $conversation = $this->conversationService->create($request->model);
+            $conversation = $this->conversationService->create($userId, $request->model);
             $conversationId = $conversation['id'];
         }
 
         // add user message to conversation
-        $this->conversationService->addMessage($conversationId, 'user', $request->message);
-        $conversation = $this->conversationService->find($conversationId);
+        $this->conversationService->addMessage($userId, $conversationId, 'user', $request->message);
+        $conversation = $this->conversationService->find($userId, $conversationId);
 
         try {
             $response = $this->askService->sendMessage(
@@ -55,14 +58,14 @@ class AskController extends Controller
             );
 
             // add assistant response
-            $this->conversationService->addMessage($conversationId, 'assistant', $response);
+            $this->conversationService->addMessage($userId, $conversationId, 'assistant', $response);
         } catch (\Exception $e) {
             $error = $e->getMessage();
         }
 
         // update model if changed
         if ($conversation['model'] !== $request->model) {
-            $this->conversationService->update($conversationId, ['model' => $request->model]);
+            $this->conversationService->update($userId, $conversationId, ['model' => $request->model]);
         }
 
         return redirect()->route('ask.show', $conversationId)->with('error', $error);
@@ -70,7 +73,7 @@ class AskController extends Controller
 
     public function destroy(string $conversationId)
     {
-        $this->conversationService->delete($conversationId);
+        $this->conversationService->delete(auth()->id(), $conversationId);
         return redirect()->route('ask');
     }
 
@@ -81,7 +84,7 @@ class AskController extends Controller
             'model' => 'required|string',
         ]);
 
-        $conversation = $this->conversationService->create($request->model);
+        $conversation = $this->conversationService->create(auth()->id(), $request->model);
 
         return redirect()->route('ask.show', $conversation['id']);
     }

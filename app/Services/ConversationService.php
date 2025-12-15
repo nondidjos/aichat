@@ -6,28 +6,29 @@ use Illuminate\Support\Str;
 
 class ConversationService
 {
-    private string $storagePath;
-
-    public function __construct()
+    private function getUserDirectory(int $userId): string
     {
-        $this->storagePath = storage_path('app/conversations.json');
+        $dir = storage_path("app/conversations/{$userId}");
+
+        if (!is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+        return "{$dir}/{$userId}.json";
     }
 
-    public function all(): array
+    public function all(int $userId): array
     {
-        return $this->load();
+        return $this->load($userId);
     }
 
-    public function find(string $id): ?array
+    public function find(int $userId, string $id): ?array
     {
-        $conversations = $this->load();
+        $conversations = $this->load($userId);
         return $conversations[$id] ?? null;
     }
 
-    public function create(string $model): array
+    public function create(int $userId, string $model): array
     {
-        $conversations = $this->load();
-
         $id = Str::uuid()->toString();
         $conversation = [
             'id' => $id,
@@ -39,80 +40,82 @@ class ConversationService
         ];
 
         $conversations[$id] = $conversation;
-        $this->save($conversations);
+        $this->save($userId, $conversations);
 
         return $conversation;
     }
 
-    public function update(string $id, array $data): ?array
+    public function update(int $userId, string $id, array $data): ?array
     {
-        $conversations = $this->load();
+        $conversation = $this->find($userId, $id);
 
-        if (!isset($conversations[$id])) {
+        if (!$conversation) {
             return null;
         }
 
         // merge new data, always refresh updated_at
-        $conversations[$id] = array_merge($conversations[$id], $data, [
+        $conversation = array_merge($conversation, $data, [
             'updated_at' => now()->toISOString(),
         ]);
 
-        $this->save($conversations);
+        $this->save($userId, $conversations);
 
         return $conversations[$id];
     }
 
-    public function addMessage(string $id, string $role, string $content): ?array
+    public function addMessage(int $userId, string $id, string $role, string $content): ?array
     {
-        $conversations = $this->load();
+        $conversation = $this->find($userId, $id);
 
-        if (!isset($conversations[$id])) {
+        if (!$conversation) {
             return null;
         }
 
-        $conversations[$id]['messages'][] = [
+        $conversation['messages'][] = [
             'role' => $role,
             'content' => $content,
         ];
 
         // auto-title from first user message
-        if ($conversations[$id]['title'] === 'New conversation' && $role === 'user') {
-            $conversations[$id]['title'] = Str::limit($content, 40);
+        if ($conversation['title'] === 'New conversation' && $role === 'user') {
+            $conversation['title'] = Str::limit($content, 40);
         }
 
-        $conversations[$id]['updated_at'] = now()->toISOString();
+        $conversation['updated_at'] = now()->toISOString();
 
-        $this->save($conversations);
+        $this->save($userId, $conversations);
 
         return $conversations[$id];
     }
 
-    public function delete(string $id): bool
+    public function delete(int $userId, string $id): bool
     {
-        $conversations = $this->load();
+        $path = $this->getConversationPath($userId, $id);
 
         if (!isset($conversations[$id])) {
             return false;
         }
 
         unset($conversations[$id]);
-        $this->save($conversations);
+        $this->save($userId, $conversations);
 
         return true;
     }
 
-    private function load(): array
+    private function loadConversation(string $path): ?array
     {
-        if (!file_exists($this->storagePath)) {
+        $path = $this->getStoragePath($userId);
+        if (!file_exists($path)) {
             return [];
         }
 
-        $content = file_get_contents($this->storagePath);
+        $content = file_get_contents($path);
         return json_decode($content, true) ?? [];
     }
 
-    private function save(array $conversations): void
+    private function saveConversation(int $userId, array $conversation): void
     {
-        file_put_contents($this->storagePath, json_encode($conversations, JSON_PRETTY_PRINT));
+        $path = $this->getStoragePath($userId);
+        file_put_contents($path, json_encode($conversations, JSON_PRETTY_PRINT));
     }
 }
