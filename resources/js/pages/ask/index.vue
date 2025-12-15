@@ -62,7 +62,7 @@ watch(() => props.messages, (newMessages) => {
 watch(() => props.currentConversationId, (id) => {
     form.conversationId = id;
     form.model = props.selectedModel;
-});
+}, { immediate: true });
 
 // auto-scroll to bottom on new messages
 const messagesContainer = ref(null);
@@ -111,7 +111,7 @@ const sendMessage = () => {
     router.post('/ask', {
         message,
         model: form.model,
-        conversationId: form.conversationId,
+        conversationId: props.currentConversationId
     });
 };
 </script>
