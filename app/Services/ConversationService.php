@@ -4,6 +4,10 @@ namespace App\Services;
 
 use Illuminate\Support\Str;
 
+// {userId}/
+// ├── index.json           :  lightweight metadata for all conversations (no messages)
+// ├── {conversationId}.json:  individual conversation files with full content
+
 class ConversationService
 {
     private function getUserDirectory(int $userId): string
@@ -16,27 +20,43 @@ class ConversationService
         return $dir;
     }
 
-    private function getStoragePath(int $userId): string
+    private function getIndexPath(int $userId): string
     {
-        $dir = $this->getUserDirectory($userId);
-        return "{$dir}/{$userId}.json";
+        return $this->getUserDirectory($userId) . '/index.json';
     }
 
+    private function getConversationPath(int $userId, string $conversationId): string
+    {
+        return $this->getUserDirectory($userId) . "/{$conversationId}.json";
+    }
+
+    // get all conversations (metadata only, no messages)
     public function all(int $userId): array
     {
-        return $this->load($userId);
+        return $this->loadIndex($userId);
     }
 
+    // find a specific conversation with full content
     public function find(int $userId, string $id): ?array
     {
-        $conversations = $this->load($userId);
-        return $conversations[$id] ?? null;
+        $path = $this->getConversationPath($userId, $id);
+
+        if (!file_exists($path)) {
+            return null;
+        }
+
+        $content = file_get_contents($path);
+        $data = json_decode($content, true);
+
+        return is_array($data) ? $data : null;
     }
 
+    // create a new conversation
     public function create(int $userId, string $model): array
     {
         $id = Str::uuid()->toString();
         $now = now()->toISOString();
+
         $conversation = [
             'id' => $id,
             'title' => 'New conversation',
@@ -46,17 +66,19 @@ class ConversationService
             'updated_at' => $now,
         ];
 
-        $conversations = $this->load($userId);
-        $conversations[$id] = $conversation;
-        $this->save($userId, $conversations);
+        // save full conversation to individual file
+        $this->saveConversation($userId, $id, $conversation);
+
+        // update index with metadata (no messages)
+        $this->updateIndex($userId, $id, $conversation);
 
         return $conversation;
     }
 
+    // update conversation metadata
     public function update(int $userId, string $id, array $data): ?array
     {
-        $conversations = $this->load($userId);
-        $conversation = $conversations[$id] ?? null;
+        $conversation = $this->find($userId, $id);
 
         if (!$conversation) {
             return null;
@@ -67,17 +89,16 @@ class ConversationService
             'updated_at' => now()->toISOString(),
         ]);
 
-        $conversations[$id] = $conversation;
+        $this->saveConversation($userId, $id, $conversation);
+        $this->updateIndex($userId, $id, $conversation);
 
-        $this->save($userId, $conversations);
-
-        return $conversations[$id];
+        return $conversation;
     }
 
+    // add a message to a conversation
     public function addMessage(int $userId, string $id, string $role, string $content): ?array
     {
-        $conversations = $this->load($userId);
-        $conversation = $conversations[$id] ?? null;
+        $conversation = $this->find($userId, $id);
 
         if (!$conversation) {
             return null;
@@ -94,42 +115,71 @@ class ConversationService
         }
 
         $conversation['updated_at'] = now()->toISOString();
-        $conversations[$id] = $conversation;
 
-        $this->save($userId, $conversations);
+        $this->saveConversation($userId, $id, $conversation);
+        $this->updateIndex($userId, $id, $conversation);
 
-        return $conversations[$id];
+        return $conversation;
     }
 
+    // delete a conversation
     public function delete(int $userId, string $id): bool
     {
-        $conversations = $this->load($userId);
+        $conversationPath = $this->getConversationPath($userId, $id);
 
-        if (!isset($conversations[$id])) {
+        if (!file_exists($conversationPath)) {
             return false;
         }
 
-        unset($conversations[$id]);
-        $this->save($userId, $conversations);
+        unlink($conversationPath);
+
+        // remove from index
+        $index = $this->loadIndex($userId);
+        unset($index[$id]);
+        $this->saveIndex($userId, $index);
 
         return true;
     }
 
-    private function load(int $userId): array
+    private function loadIndex(int $userId): array
     {
-        $path = $this->getStoragePath($userId);
+        $path = $this->getIndexPath($userId);
+
         if (!file_exists($path)) {
             return [];
         }
 
         $content = file_get_contents($path);
         $data = json_decode($content, true);
+
         return is_array($data) ? $data : [];
     }
 
-    private function save(int $userId, array $conversations): void
+    private function saveIndex(int $userId, array $index): void
     {
-        $path = $this->getStoragePath($userId);
-        file_put_contents($path, json_encode($conversations, JSON_PRETTY_PRINT));
+        $path = $this->getIndexPath($userId);
+        file_put_contents($path, json_encode($index, JSON_PRETTY_PRINT));
+    }
+
+    // update a single entry in the index (metadata only, no messages)
+    private function updateIndex(int $userId, string $id, array $conversation): void
+    {
+        $index = $this->loadIndex($userId);
+
+        $index[$id] = [
+            'id' => $conversation['id'],
+            'title' => $conversation['title'],
+            'model' => $conversation['model'],
+            'created_at' => $conversation['created_at'],
+            'updated_at' => $conversation['updated_at'],
+        ];
+
+        $this->saveIndex($userId, $index);
+    }
+
+    private function saveConversation(int $userId, string $id, array $conversation): void
+    {
+        $path = $this->getConversationPath($userId, $id);
+        file_put_contents($path, json_encode($conversation, JSON_PRETTY_PRINT));
     }
 }
