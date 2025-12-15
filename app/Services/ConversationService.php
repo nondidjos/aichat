@@ -13,6 +13,12 @@ class ConversationService
         if (!is_dir($dir)) {
             mkdir($dir, 0755, true);
         }
+        return $dir;
+    }
+
+    private function getStoragePath(int $userId): string
+    {
+        $dir = $this->getUserDirectory($userId);
         return "{$dir}/{$userId}.json";
     }
 
@@ -30,15 +36,17 @@ class ConversationService
     public function create(int $userId, string $model): array
     {
         $id = Str::uuid()->toString();
+        $now = now()->toISOString();
         $conversation = [
             'id' => $id,
             'title' => 'New conversation',
             'model' => $model,
             'messages' => [],
-            'created_at' => now()->toISOString(),
-            'updated_at' => now()->toISOString(),
+            'created_at' => $now,
+            'updated_at' => $now,
         ];
 
+        $conversations = $this->load($userId);
         $conversations[$id] = $conversation;
         $this->save($userId, $conversations);
 
@@ -47,7 +55,8 @@ class ConversationService
 
     public function update(int $userId, string $id, array $data): ?array
     {
-        $conversation = $this->find($userId, $id);
+        $conversations = $this->load($userId);
+        $conversation = $conversations[$id] ?? null;
 
         if (!$conversation) {
             return null;
@@ -58,6 +67,8 @@ class ConversationService
             'updated_at' => now()->toISOString(),
         ]);
 
+        $conversations[$id] = $conversation;
+
         $this->save($userId, $conversations);
 
         return $conversations[$id];
@@ -65,7 +76,8 @@ class ConversationService
 
     public function addMessage(int $userId, string $id, string $role, string $content): ?array
     {
-        $conversation = $this->find($userId, $id);
+        $conversations = $this->load($userId);
+        $conversation = $conversations[$id] ?? null;
 
         if (!$conversation) {
             return null;
@@ -82,6 +94,7 @@ class ConversationService
         }
 
         $conversation['updated_at'] = now()->toISOString();
+        $conversations[$id] = $conversation;
 
         $this->save($userId, $conversations);
 
@@ -90,7 +103,7 @@ class ConversationService
 
     public function delete(int $userId, string $id): bool
     {
-        $path = $this->getConversationPath($userId, $id);
+        $conversations = $this->load($userId);
 
         if (!isset($conversations[$id])) {
             return false;
@@ -102,7 +115,7 @@ class ConversationService
         return true;
     }
 
-    private function loadConversation(string $path): ?array
+    private function load(int $userId): array
     {
         $path = $this->getStoragePath($userId);
         if (!file_exists($path)) {
@@ -110,10 +123,11 @@ class ConversationService
         }
 
         $content = file_get_contents($path);
-        return json_decode($content, true) ?? [];
+        $data = json_decode($content, true);
+        return is_array($data) ? $data : [];
     }
 
-    private function saveConversation(int $userId, array $conversation): void
+    private function save(int $userId, array $conversations): void
     {
         $path = $this->getStoragePath($userId);
         file_put_contents($path, json_encode($conversations, JSON_PRETTY_PRINT));
