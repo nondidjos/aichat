@@ -112,6 +112,7 @@ const sendMessage = () => {
                     v-for="(message, index) in localMessages"
                     :key="index"
                     class="flex gap-3"
+                    :class="message.role === 'user' ? 'flex-row-reverse' : ''"
                 >
                     <Avatar class="h-8 w-8 shrink-0">
                         <AvatarFallback :class="message.role === 'user' ? 'bg-primary text-primary-foreground' : 'bg-muted'">
@@ -119,14 +120,14 @@ const sendMessage = () => {
                         </AvatarFallback>
                     </Avatar>
 
-                    <div class="flex-1 space-y-1">
+                    <div class="flex-1 space-y-1" :class="message.role === 'user' ? 'flex flex-col items-end' : ''">
                         <div class="flex items-center gap-2">
                             <span class="text-sm font-medium">{{ message.role === 'user' ? 'You' : 'Assistant' }}</span>
                             <Badge v-if="message.role === 'assistant'" variant="secondary" class="text-xs">AI</Badge>
                         </div>
 
                         <div v-if="message.role === 'assistant'" class="prose prose-sm max-w-none dark:prose-invert" v-html="md.render(message.content)" />
-                        <p v-else class="mt-1 whitespace-pre-wrap text-sm">{{ message.content }}</p>
+                        <p v-else class="mt-1 whitespace-pre-wrap text-sm text-right">{{ message.content }}</p>
                     </div>
                 </article>
             </section>
