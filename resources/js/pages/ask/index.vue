@@ -63,7 +63,7 @@ watch(() => props.currentConversationId, (id) => {
     form.model = props.selectedModel;
 }, { immediate: true });
 
-// auto-scroll to bottom on new messages
+// auto-scroll to bottom on new message
 const messagesContainer = ref(null);
 watch(() => localMessages.value.length, () => {
     nextTick(() => {
@@ -92,7 +92,6 @@ const sendMessage = () => {
 
 <template>
     <main class="bg-background text-foreground flex h-screen">
-        <!-- conversation sidebar -->
         <ConversationSidebar
             :current-conversation-id="currentConversationId"
             :selected-model="selectedModel"
@@ -111,7 +110,7 @@ const sendMessage = () => {
                 <article
                     v-for="(message, index) in localMessages"
                     :key="index"
-                    class="flex gap-3"
+                    class="flex gap-3 py-2"
                     :class="message.role === 'user' ? 'flex-row-reverse' : ''"
                 >
                     <Avatar class="h-8 w-8 shrink-0">
@@ -120,14 +119,19 @@ const sendMessage = () => {
                         </AvatarFallback>
                     </Avatar>
 
-                    <div class="flex-1 space-y-1" :class="message.role === 'user' ? 'flex flex-col items-end' : ''">
-                        <div class="flex items-center gap-2">
+                    <!-- user or ai? -->
+                    <div class="flex-1 space-y-1">
+                        <!-- name styling -->
+                        <div class="flex items-center gap-2" :class="message.role === 'user' ? 'justify-end' : ''">
                             <span class="text-sm font-medium">{{ message.role === 'user' ? 'You' : 'Assistant' }}</span>
                             <Badge v-if="message.role === 'assistant'" variant="secondary" class="text-xs">AI</Badge>
                         </div>
 
+                        <!-- message styling -->
                         <div v-if="message.role === 'assistant'" class="prose prose-sm max-w-none dark:prose-invert" v-html="md.render(message.content)" />
-                        <p v-else class="mt-1 whitespace-pre-wrap text-sm text-right">{{ message.content }}</p>
+                        <div v-else class="mt-1 rounded-lg bg-primary/10 px-3 py-2">
+                            <p class="whitespace-pre-wrap text-sm">{{ message.content }}</p>
+                        </div>
                     </div>
                 </article>
             </section>
@@ -142,7 +146,7 @@ const sendMessage = () => {
                         class="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                         placeholder="Type your message..."
                     />
-                    <Button type="submit" :disabled="form.processing || !form.message.trim()" class="self-end">
+                    <Button type="submit" :disabled="form.processing || !form.message.trim()" class="h-auto">
                         {{ form.processing ? 'Sending...' : 'Send' }}
                     </Button>
                 </form>

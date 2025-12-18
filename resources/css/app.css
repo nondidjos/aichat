@@ -170,3 +170,18 @@
         @apply bg-background text-foreground;
     }
 }
+
+@layer components {
+    .prose hr {
+        @apply my-4;
+    }
+    .prose p {
+        @apply leading-relaxed;
+    }
+    .prose code {
+        @apply rounded bg-muted;
+    }
+    .prose pre {
+        @apply bg-muted px-2.5 py-1.5 rounded;
+    }
+}
