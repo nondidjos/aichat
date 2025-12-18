@@ -22,7 +22,7 @@ const showUserMenu = ref(false);
 
 <template>
     <header class="flex items-center justify-between border-b px-6 py-3">
-        <span v-if="selectedModel" class="text-sm text-muted-foreground">{{ selectedModel }}</span>
+        <span v-if="selectedModel" class="text-sm font-medium text-muted-foreground">{{ selectedModel }}</span>
         <div v-else />
 
         <!-- user dropdown menu -->

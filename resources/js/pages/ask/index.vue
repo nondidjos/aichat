@@ -3,7 +3,8 @@ import {
     ref,
     computed,
     watch,
-    nextTick
+    nextTick,
+    onMounted
 } from 'vue';
 
 import {
@@ -18,6 +19,8 @@ import {
     AvatarFallback,
     Badge
 } from '@/components/ui';
+
+import { Menu } from 'lucide-vue-next';
 
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
@@ -65,13 +68,23 @@ watch(() => props.currentConversationId, (id) => {
 
 // auto-scroll to bottom on new message
 const messagesContainer = ref(null);
-watch(() => localMessages.value.length, () => {
+
+const scrollToBottom = () => {
     nextTick(() => {
         if (messagesContainer.value) {
             messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight;
         }
     });
-});
+};
+
+watch(() => localMessages.value.length, scrollToBottom);
+
+// scroll to bottom on mount and when conversation changes
+onMounted(scrollToBottom);
+watch(() => props.currentConversationId, scrollToBottom);
+
+// mobile sidebar state
+const sidebarOpen = ref(false);
 
 // send user message and add optimistically to ui
 const sendMessage = () => {
@@ -93,16 +106,26 @@ const sendMessage = () => {
 <template>
     <main class="bg-background text-foreground flex h-screen">
         <ConversationSidebar
+            v-model:open="sidebarOpen"
             :current-conversation-id="currentConversationId"
             :selected-model="selectedModel"
         />
 
         <!-- main chat area -->
-        <section class="flex flex-1 flex-col">
-            <PageHeader :selected-model="selectedModel" />
+        <section class="flex min-w-0 flex-1 flex-col overflow-hidden">
+            <!-- mobile header with menu toggle -->
+            <div class="flex items-center border-b md:hidden">
+                <Button variant="ghost" size="icon" class="m-2" @click="sidebarOpen = true">
+                    <Menu class="h-5 w-5" />
+                </Button>
+                <span class="text-sm text-muted-foreground font-medium">{{selectedModel}}</span>
+            </div>
+            <div class="hidden md:block">
+                <PageHeader :selected-model="selectedModel" />
+            </div>
 
             <!-- messages -->
-            <section ref="messagesContainer" class="flex-1 space-y-4 overflow-y-auto px-48 py-4">
+            <section ref="messagesContainer" class="flex-1 space-y-4 overflow-y-auto px-4 py-4 sm:px-8 md:px-16 lg:px-32 xl:px-48">
                 <!-- empty state -->
                 <p v-if="!localMessages.length" class="flex h-full items-center justify-center text-muted-foreground">Start a conversation below.</p>
 
@@ -120,7 +143,7 @@ const sendMessage = () => {
                     </Avatar>
 
                     <!-- user or ai? -->
-                    <div class="flex-1 space-y-1">
+                    <div class="min-w-0 flex-1 space-y-1">
                         <!-- name styling -->
                         <div class="flex items-center gap-2" :class="message.role === 'user' ? 'justify-end' : ''">
                             <span class="text-sm font-medium">{{ message.role === 'user' ? 'You' : 'Assistant' }}</span>
@@ -128,7 +151,7 @@ const sendMessage = () => {
                         </div>
 
                         <!-- message styling -->
-                        <div v-if="message.role === 'assistant'" class="prose prose-sm max-w-none dark:prose-invert" v-html="md.render(message.content)" />
+                        <div v-if="message.role === 'assistant'" class="prose prose-sm max-w-none overflow-x-auto break-words dark:prose-invert [&_pre]:overflow-x-auto" v-html="md.render(message.content)" />
                         <div v-else class="mt-1 rounded-lg bg-primary/10 px-3 py-2">
                             <p class="whitespace-pre-wrap text-sm">{{ message.content }}</p>
                         </div>
@@ -137,7 +160,7 @@ const sendMessage = () => {
             </section>
 
             <!-- message input form -->
-            <footer class="border-t px-6 py-4">
+            <footer class="border-t px-4 py-3 sm:px-6 sm:py-4">
                 <form @submit.prevent="sendMessage" class="flex gap-3">
                     <textarea
                         v-model="form.message"

@@ -3,7 +3,10 @@
 import { ref, computed } from 'vue';
 import { router, Link, usePage } from '@inertiajs/vue3';
 import { Button } from '@/components/ui';
-import { Settings } from 'lucide-vue-next';
+import { X } from 'lucide-vue-next';
+
+// sidebar open state (exposed for parent control)
+const isOpen = defineModel('open', { type: Boolean, default: false });
 
 const page = usePage();
 
@@ -54,10 +57,23 @@ const confirmModel = () => {
         </div>
     </div>
 
+    <!-- mobile overlay backdrop -->
+    <div
+        v-if="isOpen"
+        class="fixed inset-0 z-40 bg-black/50 md:hidden"
+        @click="isOpen = false"
+    />
+
     <!-- conversation list sidebar -->
-    <aside class="flex w-64 flex-col border-r">
-        <header class="border-b p-4">
-            <Button @click="openNewChat" class="w-full">New Chat</Button>
+    <aside
+        class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-background transition-transform duration-200 md:static md:translate-x-0"
+        :class="isOpen ? 'translate-x-0' : '-translate-x-full'"
+    >
+        <header class="flex items-center gap-2 border-b p-4">
+            <Button @click="openNewChat" class="flex-1">New Chat</Button>
+            <Button variant="ghost" size="icon" class="md:hidden" @click="isOpen = false">
+                <X class="h-4 w-4" />
+            </Button>
         </header>
         <nav class="flex-1 overflow-y-auto">
             <Link
@@ -76,13 +92,5 @@ const confirmModel = () => {
                 </button>
             </Link>
         </nav>
-        <footer class="border-t p-4">
-            <Link href="/settings">
-                <Button variant="ghost" class="w-full justify-start">
-                    <Settings class="mr-2 h-4 w-4" />
-                    Settings
-                </Button>
-            </Link>
-        </footer>
     </aside>
 </template>
