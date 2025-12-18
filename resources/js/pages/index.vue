@@ -15,10 +15,9 @@ withDefaults(
 <template>
     <Head title="Welcome" />
     <div class="flex min-h-screen flex-col items-center justify-center bg-gray-50 p-6 dark:bg-gray-900">
-        <header class="mb-8 w-full max-w-md text-center">
-            <h1 class="text-4xl font-bold text-gray-900 dark:text-white">Welcome</h1>
-            <p class="mt-2 text-gray-600 dark:text-gray-400">Get started with your application</p>
-        </header>
+        <div class="flex items-center justify-center text-foreground p-8">
+            <img src="/logo-ti.svg" alt="Logo" class="h-5" />
+        </div>
 
         <nav class="flex items-center gap-4">
             <Link

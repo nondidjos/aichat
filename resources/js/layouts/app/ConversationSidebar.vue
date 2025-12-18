@@ -69,13 +69,18 @@ const confirmModel = () => {
         class="fixed inset-y-0 left-0 z-50 flex w-64 flex-col border-r bg-background transition-transform duration-200 md:static md:translate-x-0"
         :class="isOpen ? 'translate-x-0' : '-translate-x-full'"
     >
-        <header class="flex items-center gap-2 border-b p-4">
-            <Button @click="openNewChat" class="flex-1">New Chat</Button>
-            <Button variant="ghost" size="icon" class="md:hidden" @click="isOpen = false">
-                <X class="h-4 w-4" />
-            </Button>
+        <header class="flex flex-col gap-4 border-b p-4">
+            <div class="flex items-center justify-center">
+                <img src="/logo-ti.svg" alt="Logo" class="h-5 dark:invert" />
+            </div>
+            <div class="flex items-center gap-2">
+                <Button @click="openNewChat" class="flex-1">New Chat</Button>
+                <Button variant="ghost" size="icon" class="md:hidden" @click="isOpen = false">
+                    <X class="h-4 w-4" />
+                </Button>
+            </div>
         </header>
-        <nav class="flex-1 overflow-y-auto">
+        <nav class="flex-1 overflow-y-auto divide-y divide-border">
             <Link
                 v-for="conversation in conversations"
                 :key="conversation.id"

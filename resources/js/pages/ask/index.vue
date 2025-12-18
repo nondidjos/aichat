@@ -152,7 +152,7 @@ const sendMessage = () => {
 
                         <!-- message styling -->
                         <div v-if="message.role === 'assistant'" class="prose prose-sm max-w-none overflow-x-auto break-words dark:prose-invert [&_pre]:overflow-x-auto" v-html="md.render(message.content)" />
-                        <div v-else class="mt-1 rounded-lg bg-primary/10 px-3 py-2">
+                        <div v-else class="mt-1 rounded-lg bg-slate-100 dark:bg-slate-800 px-3 py-2">
                             <p class="whitespace-pre-wrap text-sm">{{ message.content }}</p>
                         </div>
                     </div>

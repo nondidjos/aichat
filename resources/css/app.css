@@ -178,10 +178,7 @@
     .prose p {
         @apply leading-relaxed;
     }
-    .prose code {
-        @apply rounded bg-muted;
-    }
     .prose pre {
-        @apply bg-muted px-2.5 py-1.5 rounded;
+        @apply bg-muted px-2.5 py-1.5 m-4 rounded;
     }
 }
