@@ -20,8 +20,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/ask', [AskController::class, 'index'])->name('ask');
     // view a specific conversation
     Route::get('/ask/{conversationId}', [AskController::class, 'index'])->name('ask.show');
-    // send a message
+    // send a message (returns conversationId for streaming)
     Route::post('/ask', [AskController::class, 'ask'])->name('ask.post');
+    // stream AI response (SSE endpoint)
+    Route::post('/ask/stream', [AskController::class, 'stream'])->name('ask.stream');
+    // save completed response
+    Route::post('/ask/save-response', [AskController::class, 'saveResponse'])->name('ask.save');
     // create a new conversation
     Route::post('/ask/new', [AskController::class, 'create'])->name('ask.create');
     // delete a conversation
