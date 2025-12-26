@@ -17,10 +17,10 @@ class ApiKeyController extends Controller
     public function edit(Request $request): Response
     {
         $user = $request->user();
-        
+
         // Check if user has an API key set (don't expose the actual key)
         $hasApiKey = !empty($user->api_key);
-        
+
         // Show masked version if key exists
         $maskedKey = null;
         if ($hasApiKey) {
@@ -48,7 +48,7 @@ class ApiKeyController extends Controller
         ]);
 
         $user = $request->user();
-        
+
         // Encrypt the API key before storing
         $user->api_key = Crypt::encryptString($request->api_key);
         $user->save();
