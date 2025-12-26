@@ -68,19 +68,19 @@ const features = [
         <meta name="description" content="Choose from specialized AI agents for coding, creative writing, data analysis, and more. Get personalized AI assistance that understands your unique needs." />
         <meta name="keywords" content="AI chat, AI assistant, chatbot, artificial intelligence, coding assistant, creative AI, data analysis" />
         <meta name="robots" content="index, follow" />
-        
+
         <!-- Open Graph / Facebook -->
         <meta property="og:type" content="website" />
         <meta property="og:title" content="AI Chat - Select Your Agent" />
         <meta property="og:description" content="Choose from specialized AI agents for coding, creative writing, data analysis, and more. Get personalized AI assistance." />
         <meta property="og:image" content="/og-image.png" />
-        
+
         <!-- Twitter -->
         <meta name="twitter:card" content="summary_large_image" />
         <meta name="twitter:title" content="AI Chat - Select Your Agent" />
         <meta name="twitter:description" content="Choose from specialized AI agents for coding, creative writing, data analysis, and more." />
         <meta name="twitter:image" content="/og-image.png" />
-        
+
         <!-- Canonical -->
         <link rel="canonical" href="/" />
     </Head>
