@@ -27,6 +27,10 @@ const sidebarNavItems: NavItem[] = [
         title: 'Appearance',
         href: editAppearance(),
     },
+    {
+        title: 'API Key',
+        href: '/settings/api-key',
+    },
 ];
 
 const currentPath = typeof window !== undefined ? window.location.pathname : '';

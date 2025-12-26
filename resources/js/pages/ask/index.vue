@@ -9,7 +9,8 @@ import {
 
 import {
     router,
-    usePage
+    usePage,
+    Link
 } from '@inertiajs/vue3';
 
 import { useStream } from '@laravel/stream-vue';
@@ -21,7 +22,7 @@ import {
     Badge
 } from '@/components/ui';
 
-import { Menu, Square } from 'lucide-vue-next';
+import { Menu, Square, AlertTriangle, Key } from 'lucide-vue-next';
 
 import MarkdownIt from 'markdown-it';
 import hljs from 'highlight.js';
@@ -41,6 +42,7 @@ const props = defineProps({
     messages: Array,
     error: String,
     currentConversationId: String,
+    hasApiKey: Boolean,
 });
 
 // get user from global inertia props
@@ -138,7 +140,7 @@ const sidebarOpen = ref(false);
 // send user message and start streaming
 const sendMessage = async () => {
     const userMessage = message.value;
-    if (!userMessage.trim() || isStreaming.value) return;
+    if (!userMessage.trim() || isStreaming.value || !props.hasApiKey) return;
 
     message.value = '';
 
@@ -263,14 +265,27 @@ const stopStreaming = () => {
 
             <!-- message input form -->
             <footer class="border-t px-4 py-3 sm:px-6 sm:py-4">
+                <!-- API Key Warning -->
+                <div v-if="!hasApiKey" class="mb-3 flex items-center gap-3 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-800 px-4 py-3">
+                    <AlertTriangle class="h-5 w-5 text-amber-600 dark:text-amber-500 shrink-0" />
+                    <div class="flex-1 text-sm">
+                        <p class="font-medium text-amber-800 dark:text-amber-200">API Key Required</p>
+                        <p class="text-amber-700 dark:text-amber-400">Add your OpenRouter API key in settings to start chatting.</p>
+                    </div>
+                    <Link href="/settings/api-key" class="inline-flex items-center gap-1.5 rounded-md bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-sm font-medium text-white transition-colors">
+                        <Key class="h-4 w-4" />
+                        Add Key
+                    </Link>
+                </div>
+
                 <form @submit.prevent="sendMessage" class="flex gap-3">
                     <textarea
                         v-model="message"
                         rows="2"
                         @keydown.enter.exact.prevent="sendMessage"
-                        :disabled="isStreaming"
+                        :disabled="isStreaming || !hasApiKey"
                         class="flex-1 resize-none rounded-md border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring disabled:opacity-50"
-                        placeholder="Type your message..."
+                        :placeholder="hasApiKey ? 'Type your message...' : 'Add your API key to start chatting...'"
                     />
                     <Button
                         v-if="isStreaming"
@@ -285,7 +300,7 @@ const stopStreaming = () => {
                     <Button
                         v-else
                         type="submit"
-                        :disabled="!message.trim()"
+                        :disabled="!message.trim() || !hasApiKey"
                         class="h-auto shrink-0"
                     >
                         Send

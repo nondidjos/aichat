@@ -106,11 +106,12 @@ class AskService
      *
      * @param array $messages The conversation messages
      * @param string|null $model The model ID to use
+     * @param string|null $apiKey The user's API key (uses default if not provided)
      * @param float $temperature The temperature setting
      */
-    public function streamToOutput(array $messages, ?string $model = null, float $temperature = 1.0): void
+    public function streamToOutput(array $messages, ?string $model = null, ?string $apiKey = null, float $temperature = 1.0): void
     {
-        $response = $this->sendStreamRequest($messages, $model, $temperature);
+        $response = $this->sendStreamRequest($messages, $model, $apiKey, $temperature);
 
         if ($response->failed()) {
             echo '[ERROR] ' . $response->json('error.message', 'HTTP Error');
@@ -152,13 +153,14 @@ class AskService
     /**
      * Send a streaming request to the API.
      */
-    private function sendStreamRequest(array $messages, ?string $model, float $temperature): \Illuminate\Http\Client\Response
+    private function sendStreamRequest(array $messages, ?string $model, ?string $apiKey, float $temperature): \Illuminate\Http\Client\Response
     {
         $model = $model ?? self::DEFAULT_MODEL;
         $messages = [$this->getSystemPrompt(), ...$messages];
+        $key = $apiKey ?? $this->apiKey;
 
         return Http::withHeaders([
-            'Authorization' => 'Bearer ' . $this->apiKey,
+            'Authorization' => 'Bearer ' . $key,
             'Content-Type' => 'application/json',
             'HTTP-Referer' => config('app.url'),
             'X-Title' => config('app.name'),

@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Services\AskService;
 use App\Services\ConversationService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Crypt;
 use Inertia\Inertia;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
@@ -18,6 +19,7 @@ class AskController extends Controller
     public function index(?string $conversationId = null)
     {
         $userId = auth()->id();
+        $user = auth()->user();
         $conversations = $this->conversationService->all($userId);
         $current = $conversationId ? $this->conversationService->find($userId, $conversationId) : null;
 
@@ -27,7 +29,8 @@ class AskController extends Controller
             'messages' => $current['messages'] ?? [],
             'conversations' => array_values($conversations),
             'currentConversationId' => $conversationId,
-            'user' => auth()->user()->only(['id', 'name', 'email']),
+            'user' => $user->only(['id', 'name', 'email']),
+            'hasApiKey' => !empty($user->api_key),
         ]);
     }
 
@@ -74,7 +77,8 @@ class AskController extends Controller
             'model' => 'required|string',
         ]);
 
-        $userId = auth()->id();
+        $user = auth()->user();
+        $userId = $user->id;
         $conversation = $this->conversationService->find($userId, $request->conversationId);
 
         if (!$conversation) {
@@ -84,12 +88,30 @@ class AskController extends Controller
             );
         }
 
+        // Check if user has API key
+        if (empty($user->api_key)) {
+            return response()->stream(
+                fn() => print('[ERROR] No API key configured. Please add your API key in Settings.'),
+                headers: ['Content-Type' => 'text/plain; charset=utf-8']
+            );
+        }
+
+        // Decrypt user's API key
+        try {
+            $apiKey = Crypt::decryptString($user->api_key);
+        } catch (\Exception $e) {
+            return response()->stream(
+                fn() => print('[ERROR] Failed to decrypt API key. Please re-enter your API key in Settings.'),
+                headers: ['Content-Type' => 'text/plain; charset=utf-8']
+            );
+        }
+
         $messages = $conversation['messages'];
         $model = $request->model;
 
         return response()->stream(
-            function () use ($messages, $model): void {
-                $this->askService->streamToOutput($messages, $model);
+            function () use ($messages, $model, $apiKey): void {
+                $this->askService->streamToOutput($messages, $model, $apiKey);
             },
             headers: [
                 'Content-Type' => 'text/plain; charset=utf-8',
