@@ -86,17 +86,17 @@ const features = [
     </Head>
 
     <!-- Background Grid -->
-    <div class="landing-page fixed inset-0 bg-[#fafafa] dark:bg-[#0a0a0a]">
+    <div class="landing-page dark fixed inset-0 bg-[#0a0a0a]">
         <div class="absolute inset-0 bg-grid-pattern"></div>
-        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-white/50 dark:to-[#0a0a0a]/80"></div>
+        <div class="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#0a0a0a]/80"></div>
     </div>
 
-    <div class="landing-page relative min-h-screen">
+    <div class="landing-page dark relative min-h-screen">
         <!-- Header -->
-        <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-white/60 dark:bg-[#0a0a0a]/60 border-b border-gray-200/50 dark:border-white/5">
+        <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#0a0a0a]/60 border-b border-white/5">
             <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
                 <a href="/" class="flex items-center gap-2" aria-label="AI Chat Home">
-                    <img src="/logo-ti.svg" alt="AI Chat Logo" class="h-6 dark:invert" />
+                    <img src="/logo-ti.svg" alt="AI Chat Logo" class="h-6 invert" />
                 </a>
                 <nav class="flex items-center gap-3" aria-label="Main navigation">
                     <Link

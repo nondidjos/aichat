@@ -70,9 +70,9 @@ const confirmModel = () => {
         :class="isOpen ? 'translate-x-0' : '-translate-x-full'"
     >
         <header class="flex flex-col gap-4 border-b p-4">
-            <div class="flex items-center justify-center">
+            <Link href="/" class="flex items-center justify-center">
                 <img src="/logo-ti.svg" alt="Logo" class="h-5 dark:invert" />
-            </div>
+            </Link>
             <div class="flex items-center gap-2">
                 <Button @click="openNewChat" class="flex-1">New Chat</Button>
                 <Button variant="ghost" size="icon" class="md:hidden" @click="isOpen = false">
