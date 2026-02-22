@@ -2,6 +2,7 @@
 import { ref, computed } from 'vue';
 import { router, Link, usePage } from '@inertiajs/vue3';
 import { Avatar, AvatarFallback } from '@/components/ui';
+import { edit as editProfile } from '@/routes/profile';
 
 const page = usePage();
 
@@ -40,7 +41,7 @@ const showUserMenu = ref(false);
                 v-if="showUserMenu"
                 class="absolute right-0 z-50 mt-2 w-48 rounded-lg border bg-background shadow-lg"
             >
-                <Link :href="page.props.baseUrl + '/settings'" class="block px-4 py-2 text-sm hover:bg-muted">Settings</Link>
+                <Link :href="editProfile()" class="block px-4 py-2 text-sm hover:bg-muted">Settings</Link>
                 <form @submit.prevent="router.post(page.props.baseUrl + '/logout')" class="block">
                     <button type="submit" class="w-full cursor-pointer px-4 py-2 text-left text-sm text-destructive hover:bg-muted">Sign out</button>
                 </form>

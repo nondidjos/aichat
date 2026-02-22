@@ -8,6 +8,9 @@ import { initializeTheme } from './composables/useAppearance';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
+// Eagerly load ALL wayfinder route modules so we can patch them
+const routeModules = import.meta.glob('./routes/**/index.ts', { eager: true });
+
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
     resolve: (name) =>
@@ -16,43 +19,29 @@ createInertiaApp({
             import.meta.glob<DefineComponent>('./pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        // Global fetch interceptor for subdirectory deployment
-        // Rewrites same-origin URLs missing the /aichat prefix
+        // Patch ALL wayfinder route definitions for subdirectory deployment.
+        // This modifies definition.url on every exported route object so that
+        // .url() and .form() return paths prefixed with /aichat.
         const baseUrl = (props.initialPage.props as Record<string, any>).baseUrl;
         if (baseUrl) {
             try {
                 const prefix = new URL(baseUrl).pathname.replace(/\/$/, '');
                 if (prefix && prefix !== '/') {
-                    const origin = window.location.origin;
-                    const originalFetch = window.fetch;
-                    window.fetch = function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
-                        if (typeof input === 'string') {
-                            try {
-                                const url = new URL(input, origin);
-                                if (url.origin === origin && !url.pathname.startsWith(prefix)) {
-                                    url.pathname = prefix + url.pathname;
-                                    return originalFetch.call(window, url.toString(), init);
-                                }
-                            } catch { /* not a URL, pass through */ }
-                        } else if (input instanceof Request) {
-                            try {
-                                const url = new URL(input.url);
-                                if (url.origin === origin && !url.pathname.startsWith(prefix)) {
-                                    url.pathname = prefix + url.pathname;
-                                    return originalFetch.call(window, new Request(url.toString(), input), init);
-                                }
-                            } catch { /* pass through */ }
-                        } else if (input instanceof URL) {
-                            if (input.origin === origin && !input.pathname.startsWith(prefix)) {
-                                const newUrl = new URL(input.toString());
-                                newUrl.pathname = prefix + newUrl.pathname;
-                                return originalFetch.call(window, newUrl, init);
+                    for (const [, mod] of Object.entries(routeModules)) {
+                        for (const [, exp] of Object.entries(mod as Record<string, any>)) {
+                            if (
+                                exp?.definition?.url &&
+                                typeof exp.definition.url === 'string' &&
+                                !exp.definition.url.startsWith(prefix)
+                            ) {
+                                exp.definition.url = prefix + exp.definition.url;
                             }
                         }
-                        return originalFetch.call(window, input, init);
-                    };
+                    }
                 }
-            } catch { /* ignore */ }
+            } catch {
+                /* ignore — runs fine without prefix when not in subdirectory */
+            }
         }
 
         createApp({ render: () => h(App, props) })
