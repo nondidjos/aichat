@@ -1,6 +1,6 @@
 import '../css/app.css';
 
-import { createInertiaApp, router } from '@inertiajs/vue3';
+import { createInertiaApp } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
@@ -16,21 +16,41 @@ createInertiaApp({
             import.meta.glob<DefineComponent>('./pages/**/*.vue'),
         ),
     setup({ el, App, props, plugin }) {
-        // Intercept all Inertia requests to prepend subdirectory prefix
-        // This catches wayfinder auto-generated routes (e.g. /login, /settings/profile)
-        // that don't include the /aichat prefix. Manually-prefixed paths won't be affected
-        // because we check startsWith before prepending.
+        // Global fetch interceptor for subdirectory deployment
+        // Rewrites same-origin URLs missing the /aichat prefix
         const baseUrl = (props.initialPage.props as Record<string, any>).baseUrl;
         if (baseUrl) {
             try {
                 const prefix = new URL(baseUrl).pathname.replace(/\/$/, '');
                 if (prefix && prefix !== '/') {
-                    router.on('before', (event) => {
-                        const url = event.detail.visit.url;
-                        if (!url.pathname.startsWith(prefix)) {
-                            url.pathname = prefix + url.pathname;
+                    const origin = window.location.origin;
+                    const originalFetch = window.fetch;
+                    window.fetch = function (input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
+                        if (typeof input === 'string') {
+                            try {
+                                const url = new URL(input, origin);
+                                if (url.origin === origin && !url.pathname.startsWith(prefix)) {
+                                    url.pathname = prefix + url.pathname;
+                                    return originalFetch.call(window, url.toString(), init);
+                                }
+                            } catch { /* not a URL, pass through */ }
+                        } else if (input instanceof Request) {
+                            try {
+                                const url = new URL(input.url);
+                                if (url.origin === origin && !url.pathname.startsWith(prefix)) {
+                                    url.pathname = prefix + url.pathname;
+                                    return originalFetch.call(window, new Request(url.toString(), input), init);
+                                }
+                            } catch { /* pass through */ }
+                        } else if (input instanceof URL) {
+                            if (input.origin === origin && !input.pathname.startsWith(prefix)) {
+                                const newUrl = new URL(input.toString());
+                                newUrl.pathname = prefix + newUrl.pathname;
+                                return originalFetch.call(window, newUrl, init);
+                            }
                         }
-                    });
+                        return originalFetch.call(window, input, init);
+                    };
                 }
             } catch { /* ignore */ }
         }
@@ -46,4 +66,3 @@ createInertiaApp({
 
 // This will set light / dark mode on page load...
 initializeTheme();
-
