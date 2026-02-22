@@ -12,9 +12,13 @@
 /vendor
 .DS_Store
 .env
-.env.example
+
 .env.backup
 .env.production
+.env.debug-backup
+
+# backups created by Copilot edits
+bootstrap/cache/config.php.backup
 .phpactor.json
 .phpunit.result.cache
 Homestead.json

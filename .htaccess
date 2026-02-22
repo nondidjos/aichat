@@ -1,22 +1,26 @@
-
 <IfModule mod_rewrite.c>
-    <IfModule mod_negotiation.c>
-        Options -MultiViews -Indexes
-    </IfModule>
-
     RewriteEngine On
 
-    # Handle Authorization Header
-    RewriteCond %{HTTP:Authorization} .
-    RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
-
-    # Redirect Trailing Slashes If Not A Folder...
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteCond %{REQUEST_URI} (.+)/$
-    RewriteRule ^ %1 [L,R=301]
-
-    # Send Requests To Front Controller...
-    RewriteCond %{REQUEST_FILENAME} !-d
+    # Serve existing files/directories from public folder
     RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteRule ^ index.php [L]
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond public/%{REQUEST_URI} -f
+    RewriteRule ^(.*)$ public/$1 [L]
+
+    # Serve fonts (including from build/fonts/ for relative CSS paths)
+    RewriteRule ^build/fonts/(.*)$ public/fonts/$1 [L]
+
+    # Serve build assets
+    RewriteRule ^build/(.*)$ public/build/$1 [L]
+
+    # Serve fonts
+    RewriteRule ^fonts/(.*)$ public/fonts/$1 [L]
+
+    # Serve favicon and other root public files
+    RewriteRule ^(favicon\.ico|favicon\.svg|robots\.txt|logo-ti\.svg)$ public/$1 [L]
+
+    # Everything else goes to Laravel front controller
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^(.*)$ public/index.php [L,QSA]
 </IfModule>

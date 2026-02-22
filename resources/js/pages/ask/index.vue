@@ -68,7 +68,7 @@ watch(() => props.currentConversationId, (id) => {
 }, { immediate: true });
 
 // streaming hook
-const { data: streamData, isStreaming, send, cancel, reset } = useStream('/ask/stream', {
+const { data: streamData, isStreaming, send, cancel, reset } = useStream(page.props.baseUrl + '/ask/stream', {
     onFinish: async () => {
         // save the completed response to the conversation
         if (streamData.value && conversationId.value) {
@@ -80,7 +80,7 @@ const { data: streamData, isStreaming, send, cancel, reset } = useStream('/ask/s
             // add to local messages immediately so it doesn't disappear
             localMessages.value.push({ role: 'assistant', content: cleanContent });
 
-            await fetch('/ask/save-response', {
+            await fetch(page.props.baseUrl + '/ask/save-response', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -152,7 +152,7 @@ const sendMessage = async () => {
 
     try {
         // first, send the message to create/update conversation
-        const response = await fetch('/ask', {
+        const response = await fetch(page.props.baseUrl + '/ask', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -170,7 +170,7 @@ const sendMessage = async () => {
 
         // update URL if this is a new conversation
         if (!props.currentConversationId) {
-            window.history.replaceState({}, '', `/ask/${data.conversationId}`);
+            window.history.replaceState({}, '', page.props.baseUrl + `/ask/${data.conversationId}`);
         }
 
         // start streaming the AI response
@@ -272,7 +272,7 @@ const stopStreaming = () => {
                         <p class="font-medium text-amber-800 dark:text-amber-200">API Key Required</p>
                         <p class="text-amber-700 dark:text-amber-400">Add your OpenRouter API key in settings to start chatting.</p>
                     </div>
-                    <Link href="/settings/api-key" class="inline-flex items-center gap-1.5 rounded-md bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-sm font-medium text-white transition-colors">
+                    <Link :href="page.props.baseUrl + '/settings/api-key'" class="inline-flex items-center gap-1.5 rounded-md bg-amber-600 hover:bg-amber-700 px-3 py-1.5 text-sm font-medium text-white transition-colors">
                         <Key class="h-4 w-4" />
                         Add Key
                     </Link>

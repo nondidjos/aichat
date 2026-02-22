@@ -18,17 +18,14 @@ Route::get('dashboard', function () {
 Route::middleware(['auth'])->group(function () {
     // list all conversations
     Route::get('/ask', [AskController::class, 'index'])->name('ask');
-    // view a specific conversation
-    Route::get('/ask/{conversationId}', [AskController::class, 'index'])->name('ask.show');
     // send a message (returns conversationId for streaming)
-    Route::post('/ask', [AskController::class, 'ask'])->name('ask.post');
-    // stream AI response (SSE endpoint)
-    Route::post('/ask/stream', [AskController::class, 'stream'])->name('ask.stream');
-    // save completed response
+    Route::post('/ask', [AskController::class, 'ask'])->middleware('throttle:30,1')->name('ask.post');
+    // literal routes BEFORE the wildcard
+    Route::match(['get','post'], '/ask/stream', [AskController::class, 'stream'])->middleware('throttle:30,1')->name('ask.stream');
     Route::post('/ask/save-response', [AskController::class, 'saveResponse'])->name('ask.save');
-    // create a new conversation
     Route::post('/ask/new', [AskController::class, 'create'])->name('ask.create');
-    // delete a conversation
+    // wildcard routes LAST
+    Route::get('/ask/{conversationId}', [AskController::class, 'index'])->name('ask.show');
     Route::delete('/ask/{conversationId}', [AskController::class, 'destroy'])->name('ask.destroy');
 });
 

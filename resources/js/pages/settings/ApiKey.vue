@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import AppLayout from '@/layouts/AppLayout.vue';
 import SettingsLayout from '@/layouts/settings/Layout.vue';
 import { type BreadcrumbItem } from '@/types';
-import { Head, useForm } from '@inertiajs/vue3';
+import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 import { Eye, EyeOff, Key, Trash2 } from 'lucide-vue-next';
 
@@ -17,11 +17,12 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const page = usePage();
 
 const breadcrumbItems: BreadcrumbItem[] = [
     {
         title: 'API Key settings',
-        href: '/settings/api-key',
+        href: page.props.baseUrl + '/settings/api-key',
     },
 ];
 
@@ -34,7 +35,7 @@ const form = useForm({
 const deleteForm = useForm({});
 
 const submit = () => {
-    form.patch('/settings/api-key', {
+    form.patch(page.props.baseUrl + '/settings/api-key', {
         preserveScroll: true,
         onSuccess: () => {
             form.reset();
@@ -44,7 +45,7 @@ const submit = () => {
 
 const removeKey = () => {
     if (confirm('Are you sure you want to remove your API key?')) {
-        deleteForm.delete('/settings/api-key', {
+        deleteForm.delete(page.props.baseUrl + '/settings/api-key', {
             preserveScroll: true,
         });
     }

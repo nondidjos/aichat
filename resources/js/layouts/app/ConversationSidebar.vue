@@ -38,7 +38,7 @@ const openNewChat = () => {
 // create new conversation with selected model
 const confirmModel = () => {
     showModelPicker.value = false;
-    router.post('/ask/new', { model: pickedModel.value });
+    router.post(page.props.baseUrl + '/ask/new', { model: pickedModel.value });
 };
 </script>
 
@@ -70,8 +70,8 @@ const confirmModel = () => {
         :class="isOpen ? 'translate-x-0' : '-translate-x-full'"
     >
         <header class="flex flex-col gap-4 border-b p-4">
-            <Link href="/" class="flex items-center justify-center">
-                <img src="/logo-ti.svg" alt="Logo" class="h-5 dark:invert" />
+            <Link :href="page.props.baseUrl + '/'" class="flex items-center justify-center">
+                <img :src="$page.props.baseUrl + '/logo-ti.svg'" alt="Logo" class="h-5 dark:invert" />
             </Link>
             <div class="flex items-center gap-2">
                 <Button @click="openNewChat" class="flex-1">New Chat</Button>
@@ -84,13 +84,13 @@ const confirmModel = () => {
             <Link
                 v-for="conversation in conversations"
                 :key="conversation.id"
-                :href="`/ask/${conversation.id}`"
+                :href="page.props.baseUrl + `/ask/${conversation.id}`"
                 class="group flex justify-between px-4 py-3 text-sm hover:bg-muted"
                 :class="{ 'bg-muted': conversation.id === currentConversationId }"
             >
                 <span class="truncate">{{ conversation.title }}</span>
                 <button
-                    @click.prevent="router.delete(`/ask/${conversation.id}`)"
+                    @click.prevent="router.delete(page.props.baseUrl + `/ask/${conversation.id}`)"
                     class="cursor-pointer text-muted-foreground opacity-0 transition group-hover:opacity-100 hover:text-destructive"
                 >
                     ✕

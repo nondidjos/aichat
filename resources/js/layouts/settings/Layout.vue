@@ -8,7 +8,10 @@ import { edit as editProfile } from '@/routes/profile';
 import { show } from '@/routes/two-factor';
 import { edit as editPassword } from '@/routes/user-password';
 import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+const base = (page.props.baseUrl as string) ?? '';
 
 const sidebarNavItems: NavItem[] = [
     {
@@ -29,7 +32,7 @@ const sidebarNavItems: NavItem[] = [
     },
     {
         title: 'API Key',
-        href: '/settings/api-key',
+        href: base + '/settings/api-key',
     },
 ];
 

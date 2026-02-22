@@ -21,7 +21,7 @@ defineProps<{
                     >
                         <div class="mb-1 flex items-center justify-center">
                             <img
-                                src="/logo-ti.svg"
+                                :src="$page.props.baseUrl + '/logo-ti.svg'"
                                 alt="Logo"
                                 class="h-6 my-6 dark:invert"
                             />

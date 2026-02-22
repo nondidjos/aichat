@@ -95,8 +95,8 @@ const features = [
         <!-- Header -->
         <header class="fixed top-0 left-0 right-0 z-50 backdrop-blur-xl bg-[#0a0a0a]/60 border-b border-white/5">
             <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-                <a href="/" class="flex items-center gap-2" aria-label="AI Chat Home">
-                    <img src="/logo-ti.svg" alt="AI Chat Logo" class="h-6 invert" />
+                <a :href="$page.props.baseUrl + '/'" class="flex items-center gap-2" aria-label="AI Chat Home">
+                    <img :src="$page.props.baseUrl + '/logo-ti.svg'" alt="AI Chat Logo" class="h-6 invert" />
                 </a>
                 <nav class="flex items-center gap-3" aria-label="Main navigation">
                     <Link
@@ -248,7 +248,7 @@ const features = [
         <footer class="py-10 px-6 border-t border-gray-200/50 dark:border-white/5">
             <div class="max-w-6xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div class="flex items-center gap-2">
-                    <img src="/logo-ti.svg" alt="Logo" class="h-5 dark:invert opacity-60" />
+                    <img :src="$page.props.baseUrl + '/logo-ti.svg'" alt="Logo" class="h-5 dark:invert opacity-60" />
                 </div>
                 <p class="text-sm text-gray-400">
                     &copy; {{ new Date().getFullYear() }} All rights reserved.

@@ -8,7 +8,7 @@
 /* Custom Fonts */
 @font-face {
     font-family: 'Coaster Sans';
-    src: url('/fonts/CoasterSans-Regular.woff') format('woff');
+    src: url('../fonts/CoasterSans-Regular.woff') format('woff');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -16,7 +16,7 @@
 
 @font-face {
     font-family: 'IBM Plex Mono';
-    src: url('/fonts/IBMPlexMono-Regular.woff2') format('woff2');
+    src: url('../fonts/IBMPlexMono-Regular.woff2') format('woff2');
     font-weight: 400;
     font-style: normal;
     font-display: swap;
@@ -24,7 +24,7 @@
 
 @font-face {
     font-family: 'IBM Plex Mono';
-    src: url('/fonts/IBMPlexMono-Medium.woff2') format('woff2');
+    src: url('../fonts/IBMPlexMono-Medium.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
@@ -32,7 +32,7 @@
 
 @font-face {
     font-family: 'IBM Plex Mono';
-    src: url('/fonts/IBMPlexMono-Text.woff2') format('woff2');
+    src: url('../fonts/IBMPlexMono-Text.woff2') format('woff2');
     font-weight: 450;
     font-style: normal;
     font-display: swap;
@@ -40,7 +40,7 @@
 
 @font-face {
     font-family: 'IBM Plex Serif';
-    src: url('/fonts/IBMPlexSerif-Medium.woff2') format('woff2');
+    src: url('../fonts/IBMPlexSerif-Medium.woff2') format('woff2');
     font-weight: 500;
     font-style: normal;
     font-display: swap;
